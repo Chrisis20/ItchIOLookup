@@ -6,7 +6,8 @@ async function performSearch() {
     const tag = document.getElementById("tagInput").value.trim();
     const resultsDiv = document.getElementById("results");
     
-    resultsDiv.innerHTML = "<div class='loading-text'>Searching Itch.io...</div>";
+    // Updated loading text to feel more natural on startup
+    resultsDiv.innerHTML = "<div class='loading-text'>Loading Top Free Assets...</div>";
     resultsDiv.style.display = "block"; 
 
     try {
@@ -57,3 +58,18 @@ async function performSearch() {
         console.error("Search failed:", error);
     }
 }
+
+// --- NEW FEATURES ADDED BELOW ---
+
+// 1. Allow pressing "Enter" in the search boxes to trigger the search
+document.getElementById("searchInput").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") performSearch();
+});
+document.getElementById("tagInput").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") performSearch();
+});
+
+// 2. Automatically load the top assets as soon as the page opens
+window.onload = () => {
+    performSearch();
+};
