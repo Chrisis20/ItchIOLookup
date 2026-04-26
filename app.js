@@ -1,5 +1,5 @@
 // REPLACE THIS with your actual Cloudflare Worker URL
-const proxyUrl = "https://itchiorequests.criiisxdpro385.workers.dev";
+const proxyUrl = "https://itchiolookup.crismicuentadenuevo.workers.dev";
 
 async function performSearch() {
     const searchTerm = document.getElementById("searchInput").value;
