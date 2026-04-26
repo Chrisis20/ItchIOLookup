@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Itch.io Asset Search</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .card { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        img { max-width: 200px; border-radius: 3px; display: block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Search Free Assets</h1>
+    <input type="text" id="searchInput" placeholder="Search (e.g. sword)">
+    <input type="text" id="tagInput" placeholder="Tag (e.g. 3d)">
+    <button onclick="performSearch()">Search</button>
+
+    <div id="results" style="margin-top: 20px;"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
