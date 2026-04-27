@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Itch.io Asset Search</title>
+    <title>Itch.io Asset Search</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -19,9 +19,10 @@
             gap: 10px;
             margin-bottom: 30px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
-        select {
+        select, input[type="text"] {
             padding: 12px;
             background-color: #2a2a2a;
             border: 1px solid #444;
@@ -29,22 +30,34 @@
             border-radius: 6px;
             outline: none;
             font-size: 16px;
-            cursor: pointer;
         }
 
-        input {
-            padding: 12px;
-            background-color: #2a2a2a;
-            border: 1px solid #444;
-            color: #ffffff;
-            border-radius: 6px;
-            outline: none;
-            font-size: 16px;
+        input[type="text"] {
             flex-grow: 1;
             max-width: 400px;
         }
+
         input:focus, select:focus { border-color: #fa5c5c; }
         
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #2a2a2a;
+            padding: 12px 15px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-container input {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            accent-color: #fa5c5c;
+        }
+
         button {
             padding: 12px 24px;
             background-color: #fa5c5c; 
@@ -75,6 +88,7 @@
             flex-direction: column;
             transition: transform 0.2s, border-color 0.2s;
             cursor: pointer;
+            position: relative; /* Important for placing the badge */
         }
         .card:hover {
             transform: translateY(-5px);
@@ -88,13 +102,27 @@
             background-color: #2a2a2a; 
         }
 
-        .card-info { padding: 15px; }
+        .card-info { padding: 15px; padding-bottom: 20px; }
         .card h3 { 
             margin: 0; 
             color: #ffffff; 
             font-size: 16px;
             line-height: 1.3;
         }
+
+        /* The Badges */
+        .badge {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .free-badge { background-color: #4caf50; color: white; }
+        .paid-badge { background-color: #333333; color: #aaaaaa; border: 1px solid #555;}
 
         .loading-text {
             color: #fa5c5c;
@@ -104,7 +132,7 @@
     </style>
 </head>
 <body>
-    <h1>Free Asset Search</h1>
+    <h1>Itch.io Asset Search</h1>
     
     <div class="search-container">
         <select id="searchType">
@@ -112,6 +140,12 @@
             <option value="tag">Search by Tag</option>
         </select>
         <input type="text" id="searchInput" placeholder="Enter name or tag (e.g. sword or 3d)">
+        
+        <label class="checkbox-container">
+            <input type="checkbox" id="freeOnlyCheck" checked>
+            Free Only
+        </label>
+
         <button onclick="performSearch()">Search</button>
     </div>
 
