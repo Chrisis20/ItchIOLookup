@@ -2,16 +2,21 @@
 const proxyUrl = "https://itchiolookup.crismicuentadenuevo.workers.dev";
 
 async function performSearch() {
-    const searchTerm = document.getElementById("searchInput").value.trim();
-    const tag = document.getElementById("tagInput").value.trim();
+    const searchType = document.getElementById("searchType").value;
+    const searchValue = document.getElementById("searchInput").value.trim();
     const resultsDiv = document.getElementById("results");
     
-    // Updated loading text to feel more natural on startup
-    resultsDiv.innerHTML = "<div class='loading-text'>Loading Top Free Assets...</div>";
+    if (!searchValue) {
+        resultsDiv.innerHTML = "<div class='loading-text'>Loading Top Free Assets...</div>";
+    } else {
+        resultsDiv.innerHTML = "<div class='loading-text'>Searching Itch.io...</div>";
+    }
+    
     resultsDiv.style.display = "block"; 
 
     try {
-        const response = await fetch(`${proxyUrl}?q=${searchTerm}&tag=${tag}`);
+        // We now send the TYPE (name or tag) and the VALUE to the worker
+        const response = await fetch(`${proxyUrl}?type=${searchType}&value=${encodeURIComponent(searchValue)}`);
         const htmlText = await response.text();
 
         const parser = new DOMParser();
@@ -23,7 +28,7 @@ async function performSearch() {
         resultsDiv.style.display = "grid"; 
 
         if (assetCards.length === 0) {
-            resultsDiv.innerHTML = "<p>No free assets found. Try a different word or tag.</p>";
+            resultsDiv.innerHTML = `<p>No free assets found for that ${searchType}. Try something else.</p>`;
             resultsDiv.style.display = "block";
             return;
         }
@@ -59,17 +64,12 @@ async function performSearch() {
     }
 }
 
-// --- NEW FEATURES ADDED BELOW ---
-
-// 1. Allow pressing "Enter" in the search boxes to trigger the search
+// Allow pressing "Enter" in the search box
 document.getElementById("searchInput").addEventListener("keypress", function(event) {
     if (event.key === "Enter") performSearch();
 });
-document.getElementById("tagInput").addEventListener("keypress", function(event) {
-    if (event.key === "Enter") performSearch();
-});
 
-// 2. Automatically load the top assets as soon as the page opens
+// Automatically load the top assets as soon as the page opens
 window.onload = () => {
     performSearch();
 };

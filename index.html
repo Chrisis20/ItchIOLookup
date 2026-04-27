@@ -21,6 +21,17 @@
             flex-wrap: wrap;
         }
 
+        select {
+            padding: 12px;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            color: #ffffff;
+            border-radius: 6px;
+            outline: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
         input {
             padding: 12px;
             background-color: #2a2a2a;
@@ -30,9 +41,9 @@
             outline: none;
             font-size: 16px;
             flex-grow: 1;
-            max-width: 300px;
+            max-width: 400px;
         }
-        input:focus { border-color: #fa5c5c; }
+        input:focus, select:focus { border-color: #fa5c5c; }
         
         button {
             padding: 12px 24px;
@@ -96,8 +107,11 @@
     <h1>Free Asset Search</h1>
     
     <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Asset Name (e.g. sword)">
-        <input type="text" id="tagInput" placeholder="Tag (e.g. 3d, pixel-art)">
+        <select id="searchType">
+            <option value="name">Search by Name</option>
+            <option value="tag">Search by Tag</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="Enter name or tag (e.g. sword or 3d)">
         <button onclick="performSearch()">Search</button>
     </div>
 
