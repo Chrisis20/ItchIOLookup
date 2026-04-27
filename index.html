@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Itch IO Name Lookup</title>
+    <title>Itch.io Asset Search</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -22,7 +22,7 @@
             align-items: center;
         }
 
-        input[type="text"] {
+        select, input[type="text"] {
             padding: 12px;
             background-color: #2a2a2a;
             border: 1px solid #444;
@@ -30,11 +30,14 @@
             border-radius: 6px;
             outline: none;
             font-size: 16px;
-            flex-grow: 1;
-            max-width: 500px;
         }
 
-        input:focus { border-color: #fa5c5c; }
+        input[type="text"] {
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        input:focus, select:focus { border-color: #fa5c5c; }
         
         .checkbox-container {
             display: flex;
@@ -130,10 +133,14 @@
     </style>
 </head>
 <body>
-    <h1>Itch IO Name Lookup</h1>
+    <h1>Itch.io Asset Search</h1>
     
     <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Enter asset name (e.g. magic, sword, UI)">
+        <select id="searchType">
+            <option value="name">Search by Name</option>
+            <option value="tag">Search by Tag</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="Enter name or tag (e.g. sword or 3d)">
         
         <label class="checkbox-container">
             <input type="checkbox" id="freeOnlyCheck" checked>
@@ -144,6 +151,7 @@
     </div>
 
     <div id="results"></div>
+    
     <div id="loadingMore" class="loading-more" style="display: none;">Loading more assets...</div>
 
     <script src="app.js"></script>
