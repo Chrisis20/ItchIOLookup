@@ -1,14 +1,11 @@
 // The URL to your specific Cloudflare Worker
 const proxyUrl = "https://itchiolookup.crismicuentadenuevo.workers.dev";
 
-// NEW: Variables to track infinite scrolling
 let currentPage = 1;
 let isFetching = false;
 let endOfResults = false;
 
-// We added a parameter to know if this is a fresh search, or a scroll load
 async function performSearch(isLoadMore = false) {
-    // If we are currently loading, or we reached the very end, don't do anything
     if (isFetching || (isLoadMore && endOfResults)) return;
 
     const searchType = document.getElementById("searchType").value;
@@ -30,7 +27,6 @@ async function performSearch(isLoadMore = false) {
     isFetching = true;
 
     try {
-        // We now send the page number to the Worker
         const response = await fetch(`${proxyUrl}?type=${searchType}&value=${encodeURIComponent(searchValue)}&isFree=${isFreeOnly}&page=${currentPage}`);
         
         if (!response.ok) {
@@ -51,7 +47,6 @@ async function performSearch(isLoadMore = false) {
             resultsDiv.style.display = "grid"; 
         }
 
-        // If Itch.io returns a page with zero cards, we hit the end of the line
         if (assetCards.length === 0) {
             endOfResults = true;
             if (!isLoadMore) {
@@ -77,7 +72,6 @@ async function performSearch(isLoadMore = false) {
 
             if (priceElement) {
                 priceText = priceElement.innerText.trim();
-                // If the price text has a $, €, £, ¥, or any number in it, it is paid.
                 if (priceText.match(/[\$\€\£\¥\d]/)) {
                     isFree = false;
                 }
@@ -104,7 +98,6 @@ async function performSearch(isLoadMore = false) {
                     badgeHtml = `<div class="badge paid-badge">${priceText}</div>`;
                 }
 
-                // Instead of completely replacing the innerHTML, we APPEND (+=) to it
                 resultsDiv.innerHTML += `
                     <a href="${url}" target="_blank" class="card">
                         ${imageUrl ? `<img src="${imageUrl}" alt="${title}">` : `<div style="height: 160px; display: flex; align-items: center; justify-content: center; background: #2a2a2a; color: #777;">No Image</div>`}
@@ -117,8 +110,7 @@ async function performSearch(isLoadMore = false) {
             }
         });
 
-        // SMART AUTO-LOAD: If you searched "Free Only", but page 1 had ONLY paid assets, 
-        // the script hid them all. This automatically fetches page 2 for you instantly!
+        // SMART AUTO-LOAD
         if (displayedCount === 0 && !endOfResults) {
             currentPage++;
             isFetching = false;
@@ -126,7 +118,6 @@ async function performSearch(isLoadMore = false) {
             return;
         }
 
-        // Successfully loaded this page, prep for the next one
         currentPage++;
         loadingMoreDiv.style.display = "none";
 
@@ -142,19 +133,15 @@ async function performSearch(isLoadMore = false) {
     isFetching = false;
 }
 
-// Allow pressing "Enter" in the search box
 document.getElementById("searchInput").addEventListener("keypress", function(event) {
     if (event.key === "Enter") performSearch();
 });
 
-// Automatically load the assets as soon as the page opens
 window.onload = () => {
     performSearch();
 };
 
-// NEW: The Infinite Scroll Trigger
 window.addEventListener('scroll', () => {
-    // If the user scrolls to within 500 pixels of the bottom of the page, load more
     if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
         performSearch(true);
     }
