@@ -5,6 +5,7 @@ let currentPage = 1;
 let isFetching = false;
 let endOfResults = false;
 let displayedUrls = new Set();
+let displayedTitles = new Set();
 
 async function performSearch(isLoadMore = false) {
     if (isFetching || (isLoadMore && endOfResults)) return;
@@ -20,6 +21,7 @@ async function performSearch(isLoadMore = false) {
         currentPage = 1;
         endOfResults = false;
         displayedUrls.clear();
+        displayedTitles.clear();
         resultsDiv.innerHTML = "";
         resultsDiv.style.display = "block";
         resultsDiv.innerHTML = `<div class='loading-text'>${searchValue ? 'Searching Itch.io...' : 'Loading Top Assets...'}</div>`;
@@ -87,10 +89,11 @@ async function performSearch(isLoadMore = false) {
                 const title = titleElement.innerText;
                 const url = linkElement.href;
                 
-                if (displayedUrls.has(url)) {
+                if (displayedUrls.has(url) || displayedTitles.has(title)) {
                     return; // Skip duplicate
                 }
                 displayedUrls.add(url);
+                displayedTitles.add(title);
                 
                 let imageUrl = "";
                 if (imageElement) {
