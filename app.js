@@ -4,6 +4,7 @@ const proxyUrl = "https://itchiolookup.crismicuentadenuevo.workers.dev";
 let currentPage = 1;
 let isFetching = false;
 let endOfResults = false;
+let displayedUrls = new Set();
 
 async function performSearch(isLoadMore = false) {
     if (isFetching || (isLoadMore && endOfResults)) return;
@@ -18,6 +19,7 @@ async function performSearch(isLoadMore = false) {
     if (!isLoadMore) {
         currentPage = 1;
         endOfResults = false;
+        displayedUrls.clear();
         resultsDiv.innerHTML = "";
         resultsDiv.style.display = "block";
         resultsDiv.innerHTML = `<div class='loading-text'>${searchValue ? 'Searching Itch.io...' : 'Loading Top Assets...'}</div>`;
@@ -82,9 +84,13 @@ async function performSearch(isLoadMore = false) {
             }
 
             if (titleElement && linkElement) {
-                displayedCount++;
                 const title = titleElement.innerText;
                 const url = linkElement.href;
+                
+                if (displayedUrls.has(url)) {
+                    return; // Skip duplicate
+                }
+                displayedUrls.add(url);
                 
                 let imageUrl = "";
                 if (imageElement) {
@@ -98,6 +104,7 @@ async function performSearch(isLoadMore = false) {
                     badgeHtml = `<div class="badge paid-badge">${priceText}</div>`;
                 }
 
+                displayedCount++;
                 resultsDiv.innerHTML += `
                     <a href="${url}" target="_blank" class="card">
                         ${imageUrl ? `<img src="${imageUrl}" alt="${title}">` : `<div style="height: 160px; display: flex; align-items: center; justify-content: center; background: #2a2a2a; color: #777;">No Image</div>`}
