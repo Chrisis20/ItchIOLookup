@@ -1,42 +1,65 @@
 // The URL to your specific Cloudflare Worker
 const proxyUrl = "https://itchiolookup.crismicuentadenuevo.workers.dev";
 
-async function performSearch() {
+// NEW: Variables to track infinite scrolling
+let currentPage = 1;
+let isFetching = false;
+let endOfResults = false;
+
+// We added a parameter to know if this is a fresh search, or a scroll load
+async function performSearch(isLoadMore = false) {
+    // If we are currently loading, or we reached the very end, don't do anything
+    if (isFetching || (isLoadMore && endOfResults)) return;
+
     const searchType = document.getElementById("searchType").value;
     const searchValue = document.getElementById("searchInput").value.trim();
     const isFreeOnly = document.getElementById("freeOnlyCheck").checked;
     const resultsDiv = document.getElementById("results");
+    const loadingMoreDiv = document.getElementById("loadingMore");
     
-    if (!searchValue) {
-        resultsDiv.innerHTML = "<div class='loading-text'>Loading Top Assets...</div>";
+    if (!isLoadMore) {
+        currentPage = 1;
+        endOfResults = false;
+        resultsDiv.innerHTML = "";
+        resultsDiv.style.display = "block";
+        resultsDiv.innerHTML = `<div class='loading-text'>${searchValue ? 'Searching Itch.io...' : 'Loading Top Assets...'}</div>`;
     } else {
-        resultsDiv.innerHTML = "<div class='loading-text'>Searching Itch.io...</div>";
+        loadingMoreDiv.style.display = "block";
     }
-    
-    resultsDiv.style.display = "block"; 
+
+    isFetching = true;
 
     try {
-        // Pass the isFree parameter to the worker
-        const response = await fetch(`${proxyUrl}?type=${searchType}&value=${encodeURIComponent(searchValue)}&isFree=${isFreeOnly}`);
+        // We now send the page number to the Worker
+        const response = await fetch(`${proxyUrl}?type=${searchType}&value=${encodeURIComponent(searchValue)}&isFree=${isFreeOnly}&page=${currentPage}`);
         
         if (!response.ok) {
-            resultsDiv.innerHTML = `<p style="color:#fa5c5c;">Proxy Error: The server returned status ${response.status}.</p>`;
+            if (!isLoadMore) resultsDiv.innerHTML = `<p style="color:#fa5c5c;">Proxy Error: Status ${response.status}.</p>`;
+            isFetching = false;
+            loadingMoreDiv.style.display = "none";
             return;
         }
 
         const htmlText = await response.text();
-
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, "text/html");
         
         const assetCards = doc.querySelectorAll(".game_cell");
         
-        resultsDiv.innerHTML = ""; 
-        resultsDiv.style.display = "grid"; 
+        if (!isLoadMore) {
+            resultsDiv.innerHTML = ""; 
+            resultsDiv.style.display = "grid"; 
+        }
 
+        // If Itch.io returns a page with zero cards, we hit the end of the line
         if (assetCards.length === 0) {
-            resultsDiv.innerHTML = `<p>No assets found. Try something else.</p>`;
-            resultsDiv.style.display = "block";
+            endOfResults = true;
+            if (!isLoadMore) {
+                resultsDiv.innerHTML = `<p>No assets found. Try something else.</p>`;
+                resultsDiv.style.display = "block";
+            }
+            loadingMoreDiv.style.display = "none";
+            isFetching = false;
             return;
         }
 
@@ -47,11 +70,19 @@ async function performSearch() {
             const linkElement = card.querySelector("a"); 
             const imageElement = card.querySelector(".game_thumb img");
             
-            // Check if the asset is paid by looking for Itch.io's price tag element
+            // SMARTER FREE DETECTION: We look for numbers or currency symbols
             const priceElement = card.querySelector(".price_value");
-            const isFree = priceElement === null; // If there is no price tag, it is free
+            let isFree = true;
+            let priceText = "";
 
-            // ULTIMATE GATEKEEPER: If user wants ONLY free games, and this one is paid, skip it entirely
+            if (priceElement) {
+                priceText = priceElement.innerText.trim();
+                // If the price text has a $, €, £, ¥, or any number in it, it is paid.
+                if (priceText.match(/[\$\€\£\¥\d]/)) {
+                    isFree = false;
+                }
+            }
+
             if (isFreeOnly && !isFree) {
                 return; 
             }
@@ -66,15 +97,14 @@ async function performSearch() {
                     imageUrl = imageElement.getAttribute("data-lazy_src") || imageElement.getAttribute("src") || "";
                 }
 
-                // Generate the badge based on if it's free or paid
                 let badgeHtml = "";
                 if (isFree) {
                     badgeHtml = `<div class="badge free-badge">FREE</div>`;
-                } else if (!isFreeOnly && priceElement) {
-                    // If they want to see all assets, we show the actual price on the paid ones
-                    badgeHtml = `<div class="badge paid-badge">${priceElement.innerText}</div>`;
+                } else if (!isFreeOnly && priceText) {
+                    badgeHtml = `<div class="badge paid-badge">${priceText}</div>`;
                 }
 
+                // Instead of completely replacing the innerHTML, we APPEND (+=) to it
                 resultsDiv.innerHTML += `
                     <a href="${url}" target="_blank" class="card">
                         ${imageUrl ? `<img src="${imageUrl}" alt="${title}">` : `<div style="height: 160px; display: flex; align-items: center; justify-content: center; background: #2a2a2a; color: #777;">No Image</div>`}
@@ -87,17 +117,29 @@ async function performSearch() {
             }
         });
 
-        // If the frontend filtered out everything, let the user know
-        if (displayedCount === 0) {
-            resultsDiv.innerHTML = `<p>No free assets found for that search. Try unchecking "Free Only" or searching something else.</p>`;
-            resultsDiv.style.display = "block";
+        // SMART AUTO-LOAD: If you searched "Free Only", but page 1 had ONLY paid assets, 
+        // the script hid them all. This automatically fetches page 2 for you instantly!
+        if (displayedCount === 0 && !endOfResults) {
+            currentPage++;
+            isFetching = false;
+            performSearch(true);
+            return;
         }
 
+        // Successfully loaded this page, prep for the next one
+        currentPage++;
+        loadingMoreDiv.style.display = "none";
+
     } catch (error) {
-        resultsDiv.innerHTML = "<p>Critical Error fetching assets. Check the console.</p>";
-        resultsDiv.style.display = "block";
+        if (!isLoadMore) {
+            resultsDiv.innerHTML = "<p>Critical Error fetching assets. Check the console.</p>";
+            resultsDiv.style.display = "block";
+        }
         console.error("Search failed:", error);
+        loadingMoreDiv.style.display = "none";
     }
+
+    isFetching = false;
 }
 
 // Allow pressing "Enter" in the search box
@@ -109,3 +151,11 @@ document.getElementById("searchInput").addEventListener("keypress", function(eve
 window.onload = () => {
     performSearch();
 };
+
+// NEW: The Infinite Scroll Trigger
+window.addEventListener('scroll', () => {
+    // If the user scrolls to within 500 pixels of the bottom of the page, load more
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+        performSearch(true);
+    }
+});
