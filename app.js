@@ -8,6 +8,7 @@ let endOfResults = false;
 async function performSearch(isLoadMore = false) {
     if (isFetching || (isLoadMore && endOfResults)) return;
 
+    // Notice: The searchType line is completely gone now!
     const searchValue = document.getElementById("searchInput").value.trim();
     const isFreeOnly = document.getElementById("freeOnlyCheck").checked;
     const resultsDiv = document.getElementById("results");
@@ -111,8 +112,7 @@ async function performSearch(isLoadMore = false) {
             }
         });
 
-        // SMART AUTO-LOAD: If you searched "Free Only", but page 1 had ONLY paid assets, 
-        // the script automatically fetches page 2 for you instantly!
+        // SMART AUTO-LOAD
         if (displayedCount === 0 && !endOfResults) {
             currentPage++;
             isFetching = false;
