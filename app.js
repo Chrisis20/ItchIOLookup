@@ -1,4 +1,4 @@
-// The URL to your specific Cloudflare Worker
+// Keep your specific Cloudflare Worker URL
 const proxyUrl = "https://itchiolookup.crismicuentadenuevo.workers.dev";
 
 let currentPage = 1;
@@ -8,6 +8,7 @@ let endOfResults = false;
 async function performSearch(isLoadMore = false) {
     if (isFetching || (isLoadMore && endOfResults)) return;
 
+    // These variables MUST match the HTML IDs
     const searchType = document.getElementById("searchType").value;
     const searchValue = document.getElementById("searchInput").value.trim();
     const isFreeOnly = document.getElementById("freeOnlyCheck").checked;
@@ -30,7 +31,7 @@ async function performSearch(isLoadMore = false) {
         const response = await fetch(`${proxyUrl}?type=${searchType}&value=${encodeURIComponent(searchValue)}&isFree=${isFreeOnly}&page=${currentPage}`);
         
         if (!response.ok) {
-            if (!isLoadMore) resultsDiv.innerHTML = `<p style="color:#fa5c5c;">Proxy Error: Status ${response.status}.</p>`;
+            if (!isLoadMore) resultsDiv.innerHTML = `<p style="color:#fa5c5c;">Proxy Error: Status ${response.status}. Itch.io may be blocking the request.</p>`;
             isFetching = false;
             loadingMoreDiv.style.display = "none";
             return;
@@ -65,7 +66,6 @@ async function performSearch(isLoadMore = false) {
             const linkElement = card.querySelector("a"); 
             const imageElement = card.querySelector(".game_thumb img");
             
-            // SMARTER FREE DETECTION: We look for numbers or currency symbols
             const priceElement = card.querySelector(".price_value");
             let isFree = true;
             let priceText = "";
@@ -110,11 +110,14 @@ async function performSearch(isLoadMore = false) {
             }
         });
 
-        // SMART AUTO-LOAD
+        // THE SAFETY BRAKE: If this page had 0 free games, we wait 500ms before checking the next page
+        // so Itch.io doesn't flag us as a spam bot.
         if (displayedCount === 0 && !endOfResults) {
             currentPage++;
-            isFetching = false;
-            performSearch(true);
+            setTimeout(() => {
+                isFetching = false;
+                performSearch(true);
+            }, 500); 
             return;
         }
 
