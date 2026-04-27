@@ -10,8 +10,8 @@ let displayedTitles = new Set();
 async function performSearch(isLoadMore = false) {
     if (isFetching || (isLoadMore && endOfResults)) return;
 
-    // These variables MUST match the HTML IDs
-    const searchType = document.getElementById("searchType").value;
+    // Fixed search type: only name search is supported now
+    const searchType = "name";
     const searchValue = document.getElementById("searchInput").value.trim();
     const isFreeOnly = document.getElementById("freeOnlyCheck").checked;
     const resultsDiv = document.getElementById("results");
@@ -120,14 +120,21 @@ async function performSearch(isLoadMore = false) {
             }
         });
 
-        // THE SAFETY BRAKE: If this page had 0 free games, we wait 500ms before checking the next page
-        // so Itch.io doesn't flag us as a spam bot.
-        if (displayedCount === 0 && !endOfResults) {
+        if (displayedCount === 0) {
+            if (isLoadMore) {
+                endOfResults = true;
+                loadingMoreDiv.style.display = "none";
+                isFetching = false;
+                return;
+            }
+
+            // THE SAFETY BRAKE: If the first page had 0 visible assets (for example, free-only filtering)
+            // we allow one more page load before stopping.
             currentPage++;
             setTimeout(() => {
                 isFetching = false;
                 performSearch(true);
-            }, 500); 
+            }, 500);
             return;
         }
 

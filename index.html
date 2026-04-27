@@ -17,9 +17,14 @@
         .search-container {
             display: flex;
             gap: 10px;
-            margin-bottom: 30px;
+            margin: 0 auto 30px;
             flex-wrap: wrap;
             align-items: center;
+            justify-content: center;
+            max-width: 920px;
+        }
+        h1 {
+            text-align: center;
         }
 
         select, input[type="text"] {
@@ -133,12 +138,9 @@
     </style>
 </head>
 <body>
-    <h1>Itch.io Asset Search</h1>
+    <h1>Itch.Io Name Lookup</h1>
     
     <div class="search-container">
-        <select id="searchType">
-            <option value="name">Search by Name</option>
-        </select>
         <input type="text" id="searchInput" placeholder="Enter name (e.g. sword)">
         
         <label class="checkbox-container">
